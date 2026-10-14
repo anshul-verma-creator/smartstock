@@ -1,0 +1,288 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ───────────── SmartStock design tokens — pearl, restrained orange, frosted glass (light only) ───────────── */
+:root {
+  color-scheme: light;
+  --canvas: #f8f8f6;
+  --pearl: #f2f1ed;
+  --ink: #171717;
+  --ink-2: #6b6b70;
+  --ink-3: #8e8e94;
+  --brand: #ff8a00;
+  --brand-strong: #f07d00;
+  --brand-ink: #b35600; /* orange text on light surfaces: ≥4.5:1 */
+  --brand-soft: rgba(255, 138, 0, 0.1);
+  --ok: #1f7a4d;
+  --ok-soft: rgba(46, 160, 98, 0.12);
+  --warn: #a35a00;
+  --warn-soft: rgba(255, 138, 0, 0.13);
+  --bad: #b42318;
+  --bad-soft: rgba(217, 45, 32, 0.1);
+  --line: rgba(23, 23, 23, 0.08);
+
+  /* Glass: translucent white over the coloured atmosphere. Opacity rises for reading surfaces (tables, forms). */
+  --glass-top: rgba(255, 255, 255, 0.64);
+  --glass-bottom: rgba(255, 255, 255, 0.38);
+  --glass: linear-gradient(160deg, var(--glass-top) 0%, var(--glass-bottom) 100%);
+  --glass-strong: linear-gradient(160deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.66) 100%);
+  --glass-rim: rgba(255, 255, 255, 0.72);
+  --glass-blur: 28px;
+  --glass-fallback: #f7f5f2;
+  --shadow-glass: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.22),
+    0 24px 48px -30px rgba(76, 58, 120, 0.22), 0 8px 20px -14px rgba(90, 64, 24, 0.12);
+  --shadow-lift: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+    0 30px 60px -30px rgba(76, 58, 120, 0.3), 0 10px 24px -14px rgba(90, 64, 24, 0.16);
+  --ease: cubic-bezier(0.22, 0.8, 0.3, 1);
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
+}
+body {
+  @apply bg-canvas font-sans text-ink antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+  min-height: 100dvh;
+  background-color: var(--canvas);
+}
+
+/* Atmospheric background behind every page: a warm pearl base with soft pastel light (peach, lavender,
+   mint, sky). It is what the frosted panels blur, so it must carry some colour — but stays low-contrast.
+   Three orbs drift very slowly (70–110 s loops) and are frozen for reduced-motion users. */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(46rem 34rem at 92% 4%, rgba(255, 168, 96, 0.34), transparent 70%),
+    radial-gradient(40rem 36rem at 4% 38%, rgba(186, 176, 246, 0.34), transparent 70%),
+    radial-gradient(36rem 30rem at 52% 62%, rgba(255, 214, 170, 0.26), transparent 70%),
+    radial-gradient(38rem 32rem at 18% 100%, rgba(164, 222, 200, 0.30), transparent 70%),
+    radial-gradient(40rem 32rem at 96% 88%, rgba(168, 202, 246, 0.30), transparent 70%),
+    linear-gradient(165deg, #fbf8f4 0%, #f6f3ef 48%, #f1f0f5 100%);
+}
+.atmosphere > i {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  filter: blur(70px);
+  will-change: transform;
+}
+.atmosphere > i:nth-child(1) {
+  width: 34vmax;
+  height: 34vmax;
+  right: 6vmax;
+  top: 22vh;
+  background: rgba(255, 186, 120, 0.3);
+  animation: drift-a 80s ease-in-out infinite alternate;
+}
+.atmosphere > i:nth-child(2) {
+  width: 30vmax;
+  height: 30vmax;
+  left: 18vw;
+  top: 48vh;
+  background: rgba(196, 184, 250, 0.28);
+  animation: drift-b 110s ease-in-out infinite alternate;
+}
+.atmosphere > i:nth-child(3) {
+  width: 26vmax;
+  height: 26vmax;
+  left: -6vmax;
+  top: -6vmax;
+  background: rgba(176, 226, 214, 0.26);
+  animation: drift-c 95s ease-in-out infinite alternate;
+}
+@keyframes drift-a {
+  to {
+    transform: translate3d(-10vmax, 8vmax, 0) scale(1.12);
+  }
+}
+@keyframes drift-b {
+  to {
+    transform: translate3d(12vmax, -10vmax, 0) scale(1.1);
+  }
+}
+@keyframes drift-c {
+  to {
+    transform: translate3d(14vmax, 12vmax, 0) scale(0.92);
+  }
+}
+
+@layer components {
+  .glass,
+  .glass-strong {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid var(--glass-rim);
+    box-shadow: var(--shadow-glass);
+  }
+  /* light catching the top edge of the glass + a faint left-edge sheen */
+  .glass::before,
+  .glass-strong::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 22%),
+      radial-gradient(90% 50% at 12% 0%, rgba(255, 255, 255, 0.45), transparent 70%);
+  }
+  .glass {
+    background: var(--glass);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+  }
+  .glass-strong {
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
+    backdrop-filter: blur(24px) saturate(150%);
+  }
+  .glass-quiet {
+    background: rgba(255, 255, 255, 0.42);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+  }
+  .panel {
+    @apply glass rounded-[24px];
+  }
+  .panel-read {
+    @apply glass-strong rounded-[24px];
+  }
+  .hairline {
+    border-color: var(--line);
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+  }
+  .eyebrow {
+    @apply text-[11px] font-medium uppercase tracking-[0.18em] text-ink-2;
+  }
+  .h-page {
+    @apply text-[40px] font-extralight leading-[1.05] tracking-[-0.02em] text-ink sm:text-[48px] lg:text-[54px];
+  }
+  .h-section {
+    @apply text-[24px] font-light tracking-[-0.01em] text-ink sm:text-[28px];
+  }
+  .link {
+    @apply inline-flex items-center gap-1 rounded-md font-medium text-brand-ink underline-offset-4 transition-colors hover:underline;
+  }
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-canvas;
+  }
+  .table-base {
+    @apply w-full border-collapse text-left text-sm;
+  }
+  .table-base th {
+    @apply whitespace-nowrap px-3 py-2.5 text-xs font-medium text-ink-2;
+  }
+  .table-base td {
+    @apply border-t px-3 py-2.5 align-middle;
+    border-color: var(--line);
+  }
+  .table-base tbody tr {
+    @apply transition-colors;
+  }
+  .table-base tbody tr:hover {
+    background: rgba(255, 255, 255, 0.55);
+  }
+}
+
+/* Glass fallbacks: unsupported blur or user asks for reduced transparency → opaque pearl */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  .glass,
+  .glass-strong {
+    background: var(--glass-fallback);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-strong {
+    background: var(--glass-fallback);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-rise {
+  animation: rise 0.42s var(--ease) both;
+}
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(90deg, rgba(23, 23, 23, 0.05) 25%, rgba(23, 23, 23, 0.09) 37%, rgba(23, 23, 23, 0.05) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 10px;
+}
+
+/* Print: only the printable region */
+.print-root {
+  display: none;
+}
+@media print {
+  body {
+    background: #fff !important;
+  }
+  body.printing #root,
+  body.printing [data-sonner-toaster],
+  body.printing [data-radix-portal],
+  .atmosphere,
+  .no-print {
+    display: none !important;
+  }
+  body.printing .print-root {
+    display: block !important;
+  }
+}
+
+@keyframes feed {
+  0% {
+    transform: translateY(100%);
+  }
+  15% {
+    transform: translateY(88%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
